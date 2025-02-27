@@ -1,8 +1,6 @@
 #include "workNum.h"
 
 
-int kPrecision = 19;
-
 
 uint64_t WorkNumFixedPoint::Pow(uint64_t num, int pow) {
     uint64_t result = 1;
@@ -53,19 +51,20 @@ void WorkNumFixedPoint::MakeOperation(NumberFixedPoint& num1, NumberFixedPoint& 
             num2.value = num2.value << (32 - num_len) >> (32 - num_len);
         }
 
-
         uint64_t operation_res;
+
         if (operation_type_ == '*') {
             operation_res = (uint64_t) num1.value * num2.value;
             shift = num1.B;
         } else {
             if (num2.value == 0) {
                 std::cout << "div_by_zero" << std::endl;
-                exit(EXIT_SUCCESS);
+                return;
             }
 
             uint64_t divised = (uint64_t) num1.value << (64 - num_len);
-            operation_res = divised / num2.value;
+            uint64_t diviser = num2.value;
+            operation_res = divised / diviser;
             shift = 64 - result.A  - 2 * result.B;
         }
 
@@ -93,14 +92,12 @@ bool WorkNumFixedPoint::IsDecNumber(const std::string& line) {
 }
 
 bool WorkNumFixedPoint::IsHexNumber(const std::string& line) {
-    int cnt = 0;
     for (int i = 2 ; i < line.length(); i++) {
-        if (std::isdigit(line[i]) || (line[i] >= 'A' && line[i] <= 'F') ||
-         (line[i] >= 'a' && line[i] <= 'f')) {
-            ++cnt;
+        if (!std::isxdigit(line[i])) {
+            return false;
         }
     }
-    return cnt == (line.length() - 2);
+    return true;
 }
 
 void WorkNumFixedPoint::SetOperationType(const char& operation_type) {
@@ -140,6 +137,8 @@ void WorkNumFixedPoint::FormatingForPrint(uint64_t& fractional, bool is_neg, int
 }
 
 void WorkNumFixedPoint::Print(NumberFixedPoint& num, bool is_neg) {
+    const int kPrecision = 19;
+    
     uint32_t A_part;
     uint32_t B_part;
 

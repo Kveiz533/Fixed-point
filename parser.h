@@ -6,18 +6,19 @@
 #include "nfp.h"
 #include <cstdint>
 #include <algorithm>
+#include <stdio.h>
 
 
 
 class Parser {
     public:
-        void ParseFirstCase(char** argv, WorkNumFixedPoint& worker);
-        void ParseSecondCase(char** argv, WorkNumFixedPoint& worker);
+        bool ParseFirstCase(char** argv, WorkNumFixedPoint& worker);
+        bool ParseSecondCase(char** argv, WorkNumFixedPoint& worker);
 
-        void ABParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num);
-        void RoundingParsing(const std::string& arg, WorkNumFixedPoint& worker);
-        void OperationParsing(const std::string& arg, WorkNumFixedPoint& worker);
-        void NumberParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num);
+        bool ABParsing(const char* arg, WorkNumFixedPoint& worker, NumberFixedPoint& num);
+        bool RoundingParsing(const std::string& arg, WorkNumFixedPoint& worker);
+        bool OperationParsing(const std::string& arg, WorkNumFixedPoint& worker);
+        bool NumberParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num);
 
     private:
         const std::vector<char> kRoundingValues_{'0', '1', '2', '3'};

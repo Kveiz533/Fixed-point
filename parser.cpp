@@ -1,101 +1,91 @@
 #include "parser.h"
+#include <cstdint>
 
 
-int kAmountOfArgsInFirstCase = 3;
-int kAmountOfArgsInSecondCase = 5;
+const int kAmountOfArgsInFirstCase = 3;
+const int kAmountOfArgsInSecondCase = 5;
 
 
-void Parser::ParseFirstCase(char** argv, WorkNumFixedPoint& worker) {
+bool Parser::ParseFirstCase(char** argv, WorkNumFixedPoint& worker) {
     NumberFixedPoint num;
 
-    ABParsing(argv[1], worker, num);
-    RoundingParsing(argv[2], worker);
-    NumberParsing(argv[3], worker, num);
+    bool is_ab_parsed = ABParsing(argv[1], worker, num);
+    bool is_rounding_parsed = RoundingParsing(argv[2], worker);
+    bool is_number_parsed = NumberParsing(argv[3], worker, num);
 
-    worker.Print(num,  worker.IsNeg(num));
+    if (is_ab_parsed && is_rounding_parsed && is_number_parsed) {
+        worker.Print(num,  worker.IsNeg(num));
+        return true;
+    } 
+    return false;
 }
 
-void Parser::ParseSecondCase(char** argv, WorkNumFixedPoint& worker) {
+bool Parser::ParseSecondCase(char** argv, WorkNumFixedPoint& worker) {
     NumberFixedPoint num1, num2;
 
-    ABParsing(argv[1], worker, num1);
+    bool is_ab_parsed = ABParsing(argv[1], worker, num1);
     num2.A = num1.A;
     num2.B = num1.B;
-    RoundingParsing(argv[2], worker);
-    OperationParsing(argv[3], worker);
-    NumberParsing(argv[4], worker, num1);
-    NumberParsing(argv[5], worker, num2);
+    bool is_rounding_parsed = RoundingParsing(argv[2], worker);
+    bool is_operation_parsed = OperationParsing(argv[3], worker);
+    bool is_number1_parsed = NumberParsing(argv[4], worker, num1);
+    bool is_number2_parsed = NumberParsing(argv[5], worker, num2);
 
-    worker.MakeOperation(num1, num2);
+    if (is_ab_parsed && is_rounding_parsed && is_operation_parsed && is_number1_parsed && is_number2_parsed) {
+        worker.MakeOperation(num1, num2);
+        return true;
+    } 
+    return false;
 }
 
-void Parser::ABParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num) {
-    if (std::count(arg.begin(), arg.end(), '.') == 1) {
-        std::string part1 = arg.substr(0, arg.find('.'));
-        std::string part2 = arg.substr(arg.find('.') + 1, arg.length() - arg.find('.'));
+bool Parser::ABParsing(const char* arg, WorkNumFixedPoint& worker, NumberFixedPoint& num) {
+    uint32_t A = UINT32_MAX;
+    uint32_t B = UINT32_MAX;
+    sscanf(arg, "%u.%u", &A, &B);
 
-        if (worker.IsDecNumber(part1) && worker.IsDecNumber(part2)) {
-            try {
-                int a = std::stoi(part1);
-                int b = std::stoi(part2);  
-                if (a + b <= 32) {
-                    num.A = a;
-                    num.B = b;
-                    return;
-                } 
+    if (A + B <= 32) {
+        num.A = A;
+        num.B = B;
+        return true;
+    } 
 
-            } catch (const std::out_of_range& obj) {
-                std::cerr << "Values A and B are out of range" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
     std::cerr << "Invalid A and B values" << std::endl;
-    exit(EXIT_FAILURE);
+    return false;
 }
 
-void Parser::RoundingParsing(const std::string& arg, WorkNumFixedPoint& worker) {
-    bool is_correct = false;
+bool Parser::RoundingParsing(const std::string& arg, WorkNumFixedPoint& worker) {
     for (int i = 0; i < kRoundingValues_.size(); i++) {
-        if (kRoundingValues_[i] == arg[0]) {
+        if (kRoundingValues_[i] == arg[0] && arg.length() == 1) {
             worker.SetRoundingType(kRoundingValues_[i] - '0');
-            is_correct = true;
-            break;
+            return true;
         }
     }
 
-    if (!is_correct || arg.length() != 1) {
-        std::cerr << "Incorrect rounding value" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    std::cerr << "Incorrect rounding value" << std::endl;
+    return false;
 }
 
-void Parser::OperationParsing(const std::string& arg, WorkNumFixedPoint& worker) {
-    bool is_correct = false;
+bool Parser::OperationParsing(const std::string& arg, WorkNumFixedPoint& worker) {
     for (int i = 0; i < kOperationsValues_.size(); i++) {
-        if (kOperationsValues_[i] == arg[0]) {
+        if (kOperationsValues_[i] == arg[0] && arg.length() == 1) {
             worker.SetOperationType(kOperationsValues_[i]);
-            is_correct = true;
-            break;
+            return true;
         }
     }
-
-    if (!is_correct || arg.length() != 1) {
-        std::cerr << "Incorrect operation value" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    std::cerr << "Incorrect operation value" << std::endl;
+    return false;
 }
 
-void Parser::NumberParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num) {
+bool Parser::NumberParsing(const std::string& arg, WorkNumFixedPoint& worker, NumberFixedPoint& num) {
     if (arg.length() <= 10 && arg.length() >= 3 && arg[0] == '0' &&
      arg[1] == 'x' && worker.IsHexNumber(arg)) {
         size_t pos;
         num.value = std::stoul(arg, &pos, 16);
         int shift = (32 - (num.A + num.B));
         num.value = (num.value << shift) >> (shift);
-        return;
+        return true;
     }
     std::cerr << "Invalid number value" << std::endl;
-    exit(EXIT_FAILURE);
+    return false;
 }
 

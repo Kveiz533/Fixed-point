@@ -2,30 +2,27 @@
 #include <iostream>
 #include "parser.h"
 #include "workNum.h"
-#include <sstream>
-#include <iterator>
-
-extern int kAmountOfArgsInFirstCase;
-extern int kAmountOfArgsInSecondCase;
-
-
-std::vector<std::string> SplitString(const std::string& str) {
-    std::istringstream iss(str);
-    return {std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>()};
-}
 
 
 int main(int argc, char**argv) {
     Parser parser;
     WorkNumFixedPoint worker;
+    bool is_correct_number_of_args = false;
+    bool is_worked_correctly = false;
 
-    if (argc == kAmountOfArgsInFirstCase + 1) {
-        parser.ParseFirstCase(argv, worker);
-    } else if (argc == kAmountOfArgsInSecondCase + 1) {
-        parser.ParseSecondCase(argv, worker);
-    } else {
-        std::cerr << "Incorrect number of arguments" << std::endl;
-        exit(EXIT_FAILURE);
+    if (argc == 4) {
+        is_correct_number_of_args = true;
+        is_worked_correctly = parser.ParseFirstCase(argv, worker);
+    } else if (argc == 6) {
+        is_correct_number_of_args = true;
+        is_worked_correctly = parser.ParseSecondCase(argv, worker);
+    }     
+    
+    if (!is_worked_correctly) {
+        return 1;
+    } else if (!is_correct_number_of_args) { 
+        std::cerr << "Wrong number of arguments" << std::endl;
+        return 1;
     }
 
     return 0;
