@@ -2,8 +2,6 @@
 #include <cstdint>
 
 
-const int kAmountOfArgsInFirstCase = 3;
-const int kAmountOfArgsInSecondCase = 5;
 
 
 bool Parser::ParseFirstCase(char** argv, WorkNumFixedPoint& worker) {
